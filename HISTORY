@@ -1,0 +1,90 @@
+NetworkViewer-1.0:
+- Initial release
+
+NetworkViewer-1.1:
+- Added rule to build NetworkViewer executable to makefile.
+
+NetworkViewer-1.2:
+- Added collaborative network viewer.
+
+NetworkViewer-1.3:
+- Updated to new build system of Vrui-6.0 and new
+  CollaborationInfrastructure-4.0.
+
+NetworkViewer-1.4:
+- Bumped Vrui requirement to Vrui 7.0-001.
+- Bumped Vrui Collaboration Infrastructure to version 4.1.
+- Added auto-detection for support of impostor spheres.
+
+NetworkViewer-1.5:
+- Bumped Vrui version requirement to 8.0-001.
+- Adapted to new Vrui build system.
+- Bumped Vrui Collaboration Infrastructure version requirement to 5.0.
+- Adapted to Collab namespace.
+
+NetworkViewer-1.6:
+- Bumped Vrui version requirement to 9.0-001.
+
+NetworkViewer-1.7:
+- Added command line arguments to ParticleTest program to add
+  tetrahedra, whips, and rags.
+
+NetworkViewer-1.8:
+- Bumped Vrui version requirement to 10.1-004.
+- Bumped Vrui Collaboration Infrastructure version requirement to 6.4.
+- Adapted to Vrui API changes.
+
+NetworkViewer-1.9:
+- Fixed mismatching boundary problem in ParticleOctree class when
+  dynamically growing octree, by explicitly storing each node's center
+  point.
+- Implemented symmetric distance constraint relaxation algorithm that
+  does not cause overall translations or rotations.
+- Added distConstraintScale to class ParticleSystem to modulate the
+  overall strength of distance constraint relaxation.
+- Use link object's value field to set a distance constraint strength in
+  class Network.
+- Removed linkStrength element from class NetworkSimulator; use new
+  ParticleSystem::distConstraintScale element.
+- Added missing callback for SelectNodeNotification message in
+  NetworkViewerClient.
+- Fixed wrong vertex count when rendering links in NetworkViewerClient.
+- Parallelized particle simulation and network layout.
+
+NetworkViewer-2.0:
+- Changed baseFile parameter in JsonFile constructor from autopointer to
+  reference.
+- Changed networkFile parameter in Network constructor from autopointer
+  to reference.
+  - Adapted NetworkViewer application class.
+- Changed from Misc::FunctionCall to Threads::FunctionCall in
+  NetworkSimulator class and changed callback parameter to reference.
+- Changed protocol to use Metadosis to stream network files.
+  - Many concomitant changes.
+- Renamed collaborative network viewer application to
+  CollaborativeNetworkViewer.
+
+NetworkViewer-3.0:
+- Removed a lot of debugging/timing code.
+- Added transmission of a network's current selection set after a client
+  has received a new network.
+  - Bumped major protocol version.
+- Added tool to show/hide labels displaying a node's properties.
+- Added set of currently labeled nodes to server state.
+- Added sharing of rendering parameters to protocol.
+  - Added struct RenderingParameters, and replaced variables in
+    application.
+- Put serialization code directly into SimulationParameters and
+  RenderingParameters structs.
+  - Removed serialization code from NetworkViewerProtocol.
+- Set minimum link line width to 0.5 to avoid GL errors.
+- Replaced a lot of UI code with widget variable tracking.
+- Moved simulation parameters out of NetworkViewerClient and into main
+  application.
+- Fixed makefile to build release and debug versions in line with other
+  Vrui makefiles.
+
+NetworkViewer-3.1:
+- Bumped Vrui version requirement to 10.2-001.
+- Bumped Vrui Collaboration Infrastructure version requirement to 9.0.
+- Fixed missing multithreading setup in ParticleTest.cpp.

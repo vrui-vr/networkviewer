@@ -1,0 +1,265 @@
+/***********************************************************************
+ParticleOctree - Class to sort particles from a particle system into an
+adaptive octree for fast neighborhood queries and close particle
+interaction.
+Copyright (c) 2018-2023 Oliver Kreylos
+
+This file is part of the Network Viewer.
+
+The Network Viewer is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License as published
+by the Free Software Foundation; either version 2 of the License, or (at
+your option) any later version.
+
+The Network Viewer is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+General Public License for more details.
+
+You should have received a copy of the GNU General Public License along
+with the Network Viewer; if not, write to the Free Software Foundation,
+Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+***********************************************************************/
+
+#ifndef PARTICLEOCTREE_TEMPLATES_INCLUDED
+#define PARTICLEOCTREE_TEMPLATES_INCLUDED
+
+#include "ParticleOctree.h"
+
+#include <Math/Math.h>
+
+#include "ParticleSystem.h"
+
+#define PARTICLEOCTREE_DEBUGGING 0
+
+/*****************************************
+Declaration of class ParticleOctree::Node:
+*****************************************/
+
+class ParticleOctree::Node
+	{
+	friend class ParticleOctree;
+	/* Elements: */
+	private:
+	static size_t maxParticlesPerNode; // Maximum number of particles allowed in an octree node
+	Node* parent; // Pointer to the node's parent node, or null for the root node
+	Point min,max; // Extents of this octree node's domain
+	Point center; // Split point of this octree node, to ensure that enlarging always works
+	size_t numParticles; // Total number of particles in this node's subtree; node is subdivided if numParticles>maxParticlesPerNode
+	union // Node state depending on whether the node is subdivided (numParticles>maxParticlesPerNode)
+		{
+		Node* children; // Array of eight child nodes if the node is subdivided
+		Index* particleIndices; // Array of particle indices if the node is not subdivided
+		};
+	#if PARTICLEOCTREE_BARNES_HUT
+	Point centerOfGravity; // Center of gravity of all particles in this node's subtree
+	#endif
+	
+	/* Private methods: */
+	void splitLeaf(const ParticleSystem& particles); // Splits a leaf node into eight child nodes
+	size_t collapseSubtree(void); // Collapses a subtree containing not more than maxParticlesPerNode particles into a leaf node; returns the number of particles in the new leaf node
+	
+	/* Constructors and destructors: */
+	Node(void) // Dummy constructor for array-based construction
+		{
+		}
+	Node(Node* sParent,const Point& sMin,const Point& sMax) // Creates an empty leaf node with the given parent and domain
+		:parent(sParent),
+		 min(sMin),max(sMax),center(Geometry::mid(min,max)),
+		 numParticles(0),particleIndices(new Index[maxParticlesPerNode])
+		{
+		}
+	~Node(void); // Destroys the node and its subtree
+	
+	/* Methods: */
+	bool isInside(const Point& position) const // Returns true if the given position is inside this node's domain
+		{
+		return position[0]>=min[0]&&position[0]<max[0]&&position[1]>=min[1]&&position[1]<max[1]&&position[2]>=min[2]&&position[2]<max[2];
+		}
+	int getChildIndex(const Point& position) const // Returns the index of the (potential) child of this node containing the given point; assumes point is inside node's domain
+		{
+		int result=0;
+		for(int i=0;i<3;++i)
+			if(position[i]>=center[i])
+				result|=1<<i;
+		
+		return result;
+		}
+	void addParticle(const ParticleSystem& particles,Index particleIndex,const Point& position); // Inserts a particle into this node's subtree, splitting and recursing as necessary
+	void removeParticle(const ParticleSystem& particles,Index particleIndex,const Point& position); // Removes a particle from this node's subtree, recursing and merging nodes as possible
+	void updateParticles(const ParticleSystem& particles,std::vector<Index>& outOfDomainParticles); // Updates the node's subtree after particles have moved in the particle system
+	template <class ProcessCloseParticlesFunctor>
+	void processCloseParticles(const ParticleSystem& particles,ProcessCloseParticlesFunctor& functor) const; // Processes particles close to a given position with the given functor, in approximate order of increasing distance; see traversal functor declaration below
+	#if PARTICLEOCTREE_DEBUGGING
+	void checkTree(const ParticleSystem& particles) const; // Checks the node's subtree for correctness
+	#endif
+	void glRenderAction(void) const; // Renders the octree's structure
+	#if PARTICLEOCTREE_BARNES_HUT
+	void updateCentersOfGravity(const ParticleSystem& particles); // Recalculates the node's and its sub-tree's centers of gravity
+	template <class ForceAccumulationFunctor>
+	void calcForce(const ParticleSystem& particles,ForceAccumulationFunctor& forceAccumulator) const; // Calculates the n-body force exerted by this node's subtree on the given particle
+	#endif
+	};
+
+/*************************************
+Methods of class ParticleOctree::Node:
+*************************************/
+
+#define ACCURATE_NODE_DISTANCE 0
+
+template <class ProcessCloseParticlesFunctor>
+inline
+void
+ParticleOctree::Node::processCloseParticles(
+	const ParticleSystem& particles,
+	ProcessCloseParticlesFunctor& functor) const
+	{
+	/* Check if this node is an interior node: */
+	if(numParticles>maxParticlesPerNode)
+		{
+		/* Find the index of the child node closest to the central processing point: */
+		int firstChildIndex=0;
+		#if ACCURATE_NODE_DISTANCE
+		Scalar fnDist2[3];
+		#endif
+		for(int i=0;i<3;++i)
+			{
+			if(functor.getCenterPosition()[i]>=center[i])
+				{
+				firstChildIndex|=1<<i;
+				#if ACCURATE_NODE_DISTANCE
+				if(functor.getCenterPosition()[i]>max[i])
+					fnDist2[i]=Math::sqr(functor.getCenterPosition()[i]-max[i]);
+				else
+					fnDist2[i]=Scalar(0);
+				#endif
+				}
+			#if ACCURATE_NODE_DISTANCE
+			else
+				{
+				if(functor.getCenterPosition()[i]<min[i])
+					fnDist2[i]=Math::sqr(functor.getCenterPosition()[i]-min[i]);
+				else
+					fnDist2[i]=Scalar(0);
+				}
+			#endif
+			}
+		
+		/* Only process this node if its closest child is close enough: */
+		#if ACCURATE_NODE_DISTANCE
+		if(fnDist2[0]+fnDist2[1]+fnDist2[2]<functor.getMaxDist2())
+		#endif
+			{
+			/* Recurse into the closest child node first: */
+			children[firstChildIndex].processCloseParticles(particles,functor);
+			
+			/* Recurse into the other child nodes in order of increasing distance from the initial node: */
+			static const int childOrder[8]={0,1,2,4,3,5,6,7}; // Indices ordered by number of 1-bits
+			for(int cho=1;cho<8;++cho)
+				{
+				/* Get the index of the next child node to recurse into by flipping an increasing number of bits from the first child index: */
+				int childIndex=firstChildIndex^childOrder[cho];
+				
+				/* Calculate a minimum distance of the child node to the processing center point: */
+				Scalar nodeDist2(0);
+				for(int i=0;i<3;++i)
+					{
+					if(childOrder[cho]&(1<<i))
+						nodeDist2+=Math::sqr(functor.getCenterPosition()[i]-center[i]);
+					#if ACCURATE_NODE_DISTANCE
+					else
+						nodeDist2+=fnDist2[i];
+					#endif
+					}
+				if(nodeDist2<functor.getMaxDist2())
+					children[childIndex].processCloseParticles(particles,functor);
+				}
+			}
+		}
+	else
+		{
+		/* Check all particles in this node: */
+		const Index* piEnd=particleIndices+numParticles;
+		for(const Index* piPtr=particleIndices;piPtr!=piEnd;++piPtr)
+			{
+			/* Get the particle's position and check against the maximum processing distance: */
+			const Point& particlePos=particles.getParticlePosition(*piPtr);
+			Scalar dist2=Geometry::sqrDist(functor.getCenterPosition(),particlePos);
+			if(dist2<functor.getMaxDist2())
+				{
+				/* Call the functor: */
+				functor(*piPtr,particlePos,dist2);
+				}
+			}
+		}
+	}
+
+#if PARTICLEOCTREE_BARNES_HUT
+
+template <class ForceAccumulationFunctor>
+inline
+void
+ParticleOctree::Node::calcForce(
+	const ParticleSystem& particles,
+	ForceAccumulationFunctor& forceAccumulator) const
+	{
+	/* Compare the ratio of the node's width and its center of gravity's distance to the particle to the approximation threshold: */
+	Vector d=centerOfGravity-forceAccumulator.getParticlePosition();
+	Scalar dLen2=d.sqr();
+	if(Math::sqr(max[0]-min[0])<Math::sqr(forceAccumulator.getTheta())*dLen2)
+		{
+		/* Approximate the sub-tree's contribution via its center of gravity: */
+		forceAccumulator(d,dLen2,Scalar(numParticles));
+		}
+	else if(numParticles>maxParticlesPerNode)
+		{
+		/* Recurse into the node's children: */
+		for(int childIndex=0;childIndex<8;++childIndex)
+			children[childIndex].calcForce(particles,forceAccumulator);
+		}
+	else
+		{
+		/* Accumulate contributions from the node's particles: */
+		for(size_t i=0;i<numParticles;++i)
+			if(particleIndices[i]!=forceAccumulator.getParticleIndex())
+				{
+				Vector d=particles.getParticlePosition(particleIndices[i])-forceAccumulator.getParticlePosition();
+				forceAccumulator(d,d.sqr(),Scalar(1));
+				}
+		}
+	}
+
+#endif
+
+/*******************************
+Methods of class ParticleOctree:
+*******************************/
+
+template <class ProcessCloseParticlesFunctor>
+inline
+void
+ParticleOctree::processCloseParticles(
+	ProcessCloseParticlesFunctor& functor) const
+	{
+	/* Process recursively starting at the root node: */
+	if(root!=0)
+		root->processCloseParticles(particles,functor);
+	}
+
+#if PARTICLEOCTREE_BARNES_HUT
+
+template <class ForceAccumulationFunctor>
+inline
+void
+ParticleOctree::calcForce(ForceAccumulationFunctor& forceAccumulator) const
+	{
+	if(root==0)
+		throw std::runtime_error("ParticleOctree::calcForce: Octree is empty");
+	
+	/* Accumulate the n-body force by traversing the entire octree: */
+	root->calcForce(particles,forceAccumulator);
+	}
+
+#endif
+
+#endif

@@ -1,0 +1,91 @@
+========================================================================
+README for Network Viewer 3.1
+Copyright (c) 2018-2023 Oliver Kreylos
+========================================================================
+
+Overview
+========
+
+The Network Viewer is an interactive viewer and explorer for networks of
+nodes. The Network Viewer is based on the Vrui software development
+toolkit (see http://idav.ucdavis.edu/~okreylos/ResDev/Vrui), and runs in
+a variety of environments ranging from laptop or desktop computers over
+semi-immersive environments such as Geowalls to fully immersive virtual
+reality environments such as CAVEs.
+
+Requirements
+============
+
+The Network Viewer requires Vrui version 10.2 build 001 or newer, and the
+Vrui Collaboration Infrastructure version 9.0 or newer.
+
+Installation Guide
+==================
+
+It is recommended to download or move the source packages for Vrui and
+the Network Viewer into a src directory underneath the user's home
+directory. Otherwise, references to ~/src in the following instructions
+need to be changed.
+
+0.1. Install Vrui from ~/src/Vrui-<version>-<build> (see Vrui README file).
+0.2. Install the Vrui Collaboration Infrastructure from
+     ~/src/CollaborationInfrastructure-<version> (see Vrui Collaboration
+     Infrastructure README file).
+
+1. Change into ~/src directory and unpack the Network Viewer tarball:
+   > cd ~/src
+   > tar xfz <download path>/NetworkViewer-<version>.tar.gz
+   - or -
+   > tar xf <download path>/NetworkViewer-<version>.tar
+
+2. Change into the Network Viewer base directory:
+   > cd NetworkViewer-<version>
+
+3. If the Vrui version installed in step 0 was not 10.2, or Vrui's
+   installation directory was changed from the default of /usr/local,
+   adapt the makefile using a text editor. Change the value of
+   VRUI_MAKEDIR close to the beginning of the file as follows:
+   VRUI_MAKEDIR := <Vrui install dir>/share/make
+   Where <Vrui install dir> is the installation directory chosen in
+   step 0. Use $(HOME) to refer to the user's home directory instead
+   of ~.
+
+4. Adapt makefile if the Network Viewer is to be installed in a
+   different location than the default of /usr/local. Set INSTALLDIR to
+   the desired target location. The Network Viewer will then be
+   installed in <INSTALLDIR>/bin and <INSTALLDIR/share (where
+   <INSTALLDIR> is the value of INSTALLDIR set in the makefile).
+
+5. Build the Network Viewer:
+   > make
+   This creates the Network Viewer executables in ./bin.
+
+6. Install the Network Viewer in the selected target location:
+   > make install
+   - or, if the target location is a system directory -
+   > sudo make install
+   This will copy all executables into <INSTALLDIR>/bin and all
+   resources into <INSTALLDIR>/share.
+
+7. Optional: Add directory containing the Network Viewer executables (in
+   <INSTALLDIR>/bin) to the user's search path. This allows running the
+   Network Viewer from any directory. Using csh or tcsh:
+   > setenv PATH ${PATH}:<INSTALLDIR>/bin
+   where <INSTALLDIR> is the target location set in the makefile.
+   Using bash:
+   > export PATH=${PATH}:<INSTALLDIR>/bin
+   These lines can also be added to the user's .cshrc or .bashrc files
+   to make the additions persist between logins.
+
+Running the Network Viewer
+=========================
+
+These instructions assume that the Network Viewer was installed in its
+base directory, (see steps 4 and 6 above).
+
+1. On MacOS X: Start X11. The Network Viewer requires a running X
+   server, but, if preferred, it can be started from a MacOS X terminal
+   instead of xterm.
+
+2. See Vrui's HTML documentation on Vrui's basic user interface and how
+   to use the Network Viewer.
