@@ -198,6 +198,10 @@ $(EXEDIR)/ParticleTest: $(PARTICLETEST_SOURCES:%.cpp=$(OBJDIR)/%.o)
 .PHONY: ParticleTest
 ParticleTest: $(EXEDIR)/ParticleTest
 
+#
+# Old non-collaborative Network Viewer
+#
+
 NETWORK_SOURCES = ParticleOctree.cpp \
                   ParticleSystem.cpp \
                   JsonFile.cpp \
@@ -221,24 +225,9 @@ $(EXEDIR)/NetworkViewer: $(NETWORKVIEWER_SOURCES:%.cpp=$(OBJDIR)/%.o)
 .PHONY: NetworkViewer
 NetworkViewer: $(EXEDIR)/NetworkViewer
 
-NETWORKVIEWERSERVER_SOURCES = $(NETWORK_SOURCES) \
-                              RenderingParameters.cpp \
-                              NetworkViewerProtocol.cpp \
-                              NetworkViewerServer.cpp
-
-$(call PLUGINOBJNAMES,$(NETWORKVIEWERSERVER_SOURCES)): | $(DEPDIR)/config
-
-$(call PLUGIN_SERVER,NETWORKVIEWER): PACKAGES += MYCOLLABORATION2SERVER MYTHREADS
-$(call PLUGIN_SERVER,NETWORKVIEWER): $(call PLUGINOBJNAMES,$(NETWORKVIEWERSERVER_SOURCES))
-	@mkdir -p $(PLUGINDIR)
-ifdef SHOWCOMMAND
-	$(CCOMP) $(PLUGINLINKFLAGS) -o $@ $^ $(PLUGINLFLAGS)
-else
-	@echo Linking $@...
-	@$(CCOMP) $(PLUGINLINKFLAGS) -o $@ $^ $(PLUGINLFLAGS)
-endif
-.PHONY: NetworkViewerServer
-NetworkViewerServer: $(call PLUGIN_SERVER,NETWORKVIEWER)
+#
+# Collaborative Network Viewer
+#
 
 COLLABORATIVENETWORKVIEWER_SOURCES = $(NETWORK_SOURCES) \
                                      RenderingParameters.cpp \
@@ -259,6 +248,22 @@ $(EXEDIR)/CollaborativeNetworkViewer: PACKAGES += MYCOLLABORATION2CLIENT MYVRUI 
 $(EXEDIR)/CollaborativeNetworkViewer: $(COLLABORATIVENETWORKVIEWER_SOURCES:%.cpp=$(OBJDIR)/%.o)
 .PHONY: CollaborativeNetworkViewer
 CollaborativeNetworkViewer: $(EXEDIR)/CollaborativeNetworkViewer
+
+#
+# Collaborative Network Viewer server plug-in
+#
+
+NETWORKVIEWERSERVER_SOURCES = $(NETWORK_SOURCES) \
+                              RenderingParameters.cpp \
+                              NetworkViewerProtocol.cpp \
+                              NetworkViewerServer.cpp
+
+$(call PLUGINOBJNAMES,$(NETWORKVIEWERSERVER_SOURCES)): | $(DEPDIR)/config
+
+$(call COLLABORATIONPLUGIN_SERVER_TARGET,NETWORKVIEWER): PACKAGES += MYCOLLABORATION2SERVER MYGLSUPPORT MYGLWRAPPERS MYGEOMETRY MYMATH MYIO MYTHREADS MYREALTIME MYMISC GL
+$(call COLLABORATIONPLUGIN_SERVER_TARGET,NETWORKVIEWER): $(call PLUGINOBJNAMES,$(NETWORKVIEWERSERVER_SOURCES))
+.PHONY: NetworkViewerServer
+NetworkViewerServer: $(call PLUGIN_SERVER,NETWORKVIEWER)
 
 ########################################################################
 # Specify installation rules for header files, libraries, executables,
