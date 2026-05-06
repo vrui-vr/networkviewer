@@ -1,7 +1,7 @@
 /***********************************************************************
 NetworkViewer - Vrui application to interactively explore mineral
 networks or other graphs laid out in 3D space.
-Copyright (c) 2018-2020 Oliver Kreylos
+Copyright (c) 2018-2026 Oliver Kreylos
 
 This file is part of the Network Viewer.
 
@@ -24,8 +24,8 @@ Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 #include <string.h>
 #include <deque>
-#include <Misc/FunctionCalls.h>
 #include <Realtime/Time.h>
+#include <Threads/FunctionCalls.h>
 #include <IO/OpenFile.h>
 #include <Math/Math.h>
 #include <Math/Constants.h>
@@ -514,7 +514,7 @@ NetworkViewer::NetworkViewer(int& argc,char**& argv)
 	ShowPropertiesTool::initClass();
 	
 	/* Register a callback with the object snapper tool class: */
-	Vrui::ObjectSnapperTool::addSnapCallback(Misc::createFunctionCall(this,&NetworkViewer::objectSnapCallback));
+	Vrui::ObjectSnapperTool::addSnapCallback(*Threads::createFunctionCall(this,&NetworkViewer::objectSnapCallback));
 	
 	/* Create the simulation parameters control dialog: */
 	parametersDialog=createParametersDialog();

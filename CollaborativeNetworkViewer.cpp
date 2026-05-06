@@ -1,7 +1,7 @@
 /***********************************************************************
 CollaborativeNetworkViewer - Client application for collaborative
 network viewer.
-Copyright (c) 2019-2023 Oliver Kreylos
+Copyright (c) 2019-2026 Oliver Kreylos
 
 This file is part of the Network Viewer.
 
@@ -22,8 +22,8 @@ Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 #include "CollaborativeNetworkViewer.h"
 
-#include <Misc/FunctionCalls.h>
 #include <Misc/MessageLogger.h>
+#include <Threads/FunctionCalls.h>
 #include <GL/gl.h>
 #include <GL/GLMaterialTemplates.h>
 #include <GL/GLContextData.h>
@@ -142,7 +142,7 @@ GLMotif::PopupMenu* CollaborativeNetworkViewer::createMainMenu(void)
 	
 	/* Create a button to load a network file: */
 	GLMotif::Button* loadNetworkFileButton=new GLMotif::Button("LoadNetworkFileButton",mainMenu,"Load Network File...");
-	loadNetworkFileHelper.addLoadCallback(loadNetworkFileButton,Misc::createFunctionCall(this,&CollaborativeNetworkViewer::loadNetworkFileCallback));
+	loadNetworkFileHelper.addLoadCallback(loadNetworkFileButton,*Threads::createFunctionCall(this,&CollaborativeNetworkViewer::loadNetworkFileCallback));
 	
 	/* Create a sub-menu to manipulate the selection: */
 	GLMotif::CascadeButton* selectionCascade=new GLMotif::CascadeButton("SelectionCascade",mainMenu,"Selection");
@@ -454,7 +454,7 @@ CollaborativeNetworkViewer::CollaborativeNetworkViewer(int& argc,char**& argv)
 	startClient();
 	
 	/* Register a callback with the object snapper tool class: */
-	Vrui::ObjectSnapperTool::addSnapCallback(Misc::createFunctionCall(this,&CollaborativeNetworkViewer::objectSnapCallback));
+	Vrui::ObjectSnapperTool::addSnapCallback(*Threads::createFunctionCall(this,&CollaborativeNetworkViewer::objectSnapCallback));
 	
 	/* Create the UI: */
 	mainMenu=createMainMenu();

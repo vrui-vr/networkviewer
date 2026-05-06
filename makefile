@@ -1,6 +1,6 @@
 ########################################################################
 # Makefile for Network Viewer.
-# Copyright (c) 2019-2025 Oliver Kreylos
+# Copyright (c) 2019-2026 Oliver Kreylos
 #
 # This file is part of the WhyTools Build Environment.
 # 
@@ -24,7 +24,7 @@
 # matches the default Vrui installation; if Vrui's installation
 # directory was changed during Vrui's installation, the directory below
 # must be adapted.
-VRUI_MAKEDIR = /usr/local/share/Vrui-13.1/make
+VRUI_MAKEDIR ?= /usr/local/share/Vrui-15.0/make
 
 # Base installation directory for the Network Viewer. If this is set to
 # the default of $(PROJECT_ROOT), the Network Viewer does not have to be
@@ -48,7 +48,7 @@ PROJECT_DISPLAYNAME = Network Viewer
 # other. The value should be identical to the major.minor version number
 # found in VERSION in the root package directory.
 PROJECT_MAJOR = 3
-PROJECT_MINOR = 1
+PROJECT_MINOR = 2
 
 # Set up resource directories: */
 CONFIGDIR = etc/NetworkViewer-$(VERSION)

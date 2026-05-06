@@ -1,6 +1,6 @@
 /***********************************************************************
 NetworkViewerServer - Server for network viewer plug-in protocol.
-Copyright (c) 2019-2023 Oliver Kreylos
+Copyright (c) 2019-2026 Oliver Kreylos
 
 This file is part of the Network Viewer.
 

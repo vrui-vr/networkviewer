@@ -1,6 +1,6 @@
 ========================================================================
-README for Network Viewer 3.1
-Copyright (c) 2018-2023 Oliver Kreylos
+README for Network Viewer 3.2
+Copyright (c) 2018-2026 Oliver Kreylos
 ========================================================================
 
 Overview
@@ -16,8 +16,8 @@ reality environments such as CAVEs.
 Requirements
 ============
 
-The Network Viewer requires Vrui version 10.2 build 001 or newer, and the
-Vrui Collaboration Infrastructure version 9.0 or newer.
+The Network Viewer requires Vrui version 15.0 build 001 or newer, and the
+Vrui Collaboration Infrastructure version 10.5 or newer.
 
 Installation Guide
 ==================
@@ -41,7 +41,7 @@ need to be changed.
 2. Change into the Network Viewer base directory:
    > cd NetworkViewer-<version>
 
-3. If the Vrui version installed in step 0 was not 10.2, or Vrui's
+3. If the Vrui version installed in step 0 was not 15.0, or Vrui's
    installation directory was changed from the default of /usr/local,
    adapt the makefile using a text editor. Change the value of
    VRUI_MAKEDIR close to the beginning of the file as follows:
