@@ -1,7 +1,7 @@
 /***********************************************************************
 Figure - Class representing an articulated figure read from a figure
 definition file.
-Copyright (c) 2019-2020 Oliver Kreylos
+Copyright (c) 2019-2026 Oliver Kreylos
 
 This file is part of the Network Viewer.
 
@@ -22,7 +22,7 @@ Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 #include "Figure.h"
 
-#include <Misc/ThrowStdErr.h>
+#include <Misc/StdError.h>
 #include <IO/ValueSource.h>
 #include <IO/OpenFile.h>
 #include <Geometry/OrthonormalTransformation.h>
@@ -76,7 +76,7 @@ Figure::Figure(ParticleSystem& sParticles,const char* figureFileName,const Body:
 				/* Read one vertex index: */
 				Index index=Index(figureFile.readUnsignedInteger());
 				if(index>=vertexIndices.size())
-					Misc::throwStdErr("Figure::Figure: Vertex index %u out of range in line definition in file %s",index,figureFileName);
+					throw Misc::makeStdErr(__PRETTY_FUNCTION__,"Vertex index %u out of range in line definition in file %s",index,figureFileName);
 				
 				/* Get the particle index of the requested vertex: */
 				particleIndices[i]=vertexIndices[index];
@@ -97,7 +97,7 @@ Figure::Figure(ParticleSystem& sParticles,const char* figureFileName,const Body:
 				/* Read one vertex index: */
 				faceVertexIndices[i]=Index(figureFile.readUnsignedInteger());
 				if(faceVertexIndices[i]>=vertexIndices.size())
-					Misc::throwStdErr("Figure::Figure: Vertex index %u out of range in face definition in file %s",faceVertexIndices[i],figureFileName);
+					throw Misc::makeStdErr(__PRETTY_FUNCTION__,"Vertex index %u out of range in face definition in file %s",faceVertexIndices[i],figureFileName);
 				}
 			
 			/* Add a face to the particle mesh: */
@@ -112,7 +112,7 @@ Figure::Figure(ParticleSystem& sParticles,const char* figureFileName,const Body:
 				/* Read one vertex index: */
 				Index index=Index(figureFile.readUnsignedInteger());
 				if(index>=vertexIndices.size())
-					Misc::throwStdErr("Figure::Figure: Vertex index %u out of range in handle definition in file %s",index,figureFileName);
+					throw Misc::makeStdErr(__PRETTY_FUNCTION__,"Vertex index %u out of range in handle definition in file %s",index,figureFileName);
 				
 				/* Get the particle index of the requested vertex: */
 				particleIndices[i]=vertexIndices[index];
@@ -142,11 +142,11 @@ Figure::Figure(ParticleSystem& sParticles,const char* figureFileName,const Body:
 				figureMesh.setBackMaterial(GLMaterial(ambientDiffuse,specular,shininess));
 			}
 		else if(token!="#"&&token!="\n")
-			Misc::throwStdErr("Figure::Figure: Invalid token %s in file %s",token.c_str(),figureFileName);
+			throw Misc::makeStdErr(__PRETTY_FUNCTION__,"Invalid token %s in file %s",token.c_str(),figureFileName);
 		
 		/* Check that the next token is either a comment marker or a newline: */
 		if(token!="#"&&token!="\n"&&figureFile.peekc()!='#'&&figureFile.peekc()!='\n')
-			Misc::throwStdErr("Figure::Figure: Extra tokens at end of line in file %s",figureFileName);
+			throw Misc::makeStdErr(__PRETTY_FUNCTION__,"Extra tokens at end of line in file %s",figureFileName);
 			
 		/* Skip the rest of the line: */
 		if(token!="\n")
